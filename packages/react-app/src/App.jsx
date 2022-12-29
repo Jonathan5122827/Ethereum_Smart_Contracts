@@ -34,7 +34,7 @@ import { INFURA_ID, DAI_ADDRESS, DAI_ABI, NETWORK, NETWORKS } from "./constants"
 */
 
 /// 📡 What chain are your contracts deployed to?
-const targetNetwork = NETWORKS['ropsten']; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+const targetNetwork = NETWORKS['localhost']; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
 // 😬 Sorry for all the console logging
 const DEBUG = true
@@ -61,11 +61,48 @@ function App(props) {
   const [injectedProvider, setInjectedProvider] = useState();
   /* 💵 This hook will get the price of ETH from 🦄 Uniswap: */
   const price = useExchangePrice(targetNetwork,mainnetProvider);
+ 
+  const userProvider = useUserProvider(injectedProvider, localProvider);
+
+const readContracts = useContractLoader(localProvider,userProvider)
+
+  const submitProposalEvents = useEventListener(readContracts, "PowDAO", "SubmitProposal", localProvider, 1);
+  const processedProposalEvents = useEventListener(readContracts, "PowDAO", "ProcessedProposal", localProvider, 1);
+
+  let processedDataSet = [];
+
+  if(submitProposalEvents) {
+    for(let i=0; i<submitProposalEvents.length; i++) {
+      for(let j=0; j<processedProposalEvents.length; j++) {
+        if(parseInt(submitProposalEvents[i].args["proposalId"]) == parseInt(processedProposalEvents[j].args["proposalId"])) {
+          processedDataSet.push(submitProposalEvents[i])
+        }
+      }
+    }
+    const intersection = submitProposalEvents.filter(x => !processedDataSet.includes(x));
+    processedDataSet = intersection
+  }
+  else{
+    processedDataSet = submitProposalEvents
+  }
+
+ // Get contract address
+  const [contractAddress, setContractAddress ] = useState()
+  useEffect(async() => {
+    if (readContracts) {
+      const PowDAO = await readContracts.PowDAO
+      if(PowDAO) {
+          setContractAddress(PowDAO.address)
+          return PowDAO.address
+      }
+  }
+  },[]);
+
 
   /* 🔥 This hook will get the price of Gas from ⛽️ EtherGasStation */
   const gasPrice = useGasPrice(targetNetwork,"fast");
   // Use your injected provider from 🦊 Metamask or if you don't have it then instantly generate a 🔥 burner wallet.
-  const userProvider = useUserProvider(injectedProvider, localProvider);
+  //const userProvider = useUserProvider(injectedProvider, localProvider);
   const address = useUserAddress(userProvider);
   if(DEBUG) console.log("👩‍💼 selected address:",address)
 
@@ -93,7 +130,7 @@ function App(props) {
   if(DEBUG) console.log("💵 yourMainnetBalance",yourMainnetBalance?formatEther(yourMainnetBalance):"...")
 
   // Load in your local 📝 contract and read a value from it:
-  const readContracts = useContractLoader(userProvider)
+//  const readContracts = useContractLoader(userProvider)
   if(DEBUG) console.log("📝 readContracts",readContracts)
 
   // If you want to make 🔐 write transactions to your contracts, use the userProvider:
@@ -218,6 +255,15 @@ function App(props) {
             />
 
               <Contract
+              name="DiamondCutFacet"
+              signer={userProvider.getSigner()}
+              provider={userProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+            />
+
+
+              <Contract
               name="DeFiFacet"
               signer={userProvider.getSigner()}
               provider={userProvider}
@@ -225,6 +271,13 @@ function App(props) {
               blockExplorer={blockExplorer}
             />
 
+              <Contract
+              name="PowDAO"
+              signer={userProvider.getSigner()}
+              provider={userProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+            />
 
             { /* uncomment for a second contract:
             <Contract

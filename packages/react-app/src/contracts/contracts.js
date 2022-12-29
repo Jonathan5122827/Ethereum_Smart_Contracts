@@ -1,1 +1,1 @@
-module.exports = ["DeFiFacet","Diamond","DiamondCutFacet"];
+module.exports = ["DeFiFacet","Diamond","DiamondCutFacet","PowDAO","YourContract"];

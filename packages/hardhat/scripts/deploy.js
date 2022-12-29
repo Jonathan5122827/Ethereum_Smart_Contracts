@@ -32,6 +32,12 @@ const main = async () => {
 
   const defiFacet = await deploy("DeFiFacet") // <-- add in constructor args like line 19 vvvv
   const diamondCutFacet = await deploy("DiamondCutFacet") // <-- add in constructor args like line 19 vvvv
+const yourContract = await deploy("YourContract")
+
+//  const { deployer } = await getNamedAccounts();
+  const members = ["0x9E67029403675Ee18777Ed38F9C1C5c75F7B34f2","0x53A0d9f99B0467d4B633BB51dFc749A49AE50F30"]  // browser burner wallet and powvt.et>
+  PowDAO = await deploy("PowDAO",[members])
+
 
  // initial version of the defi and diamond cut facet after deploying the initial version of these contracts feel free to comment line 37 - 40 and line 34 and make changes to the defi facet contract and deploy alone and upgrade the diamond through ui
  // diamonf cut params include facet address, action and function signatures
@@ -41,6 +47,8 @@ const main = async () => {
   ]
   // eslint-disable-next-line no-unused-vars
   const deployedDiamond = await deploy("Diamond", [diamondCutParams])
+
+//	const deployedDiamond = await deploy("Diamond")
 }
 
   //const secondContract = await deploy("SecondContract")
@@ -61,12 +69,12 @@ const main = async () => {
   */
 
 
-  /*
+/*  
   //If you want to send some ETH to a contract on deploy (make your constructor payable!)
   const yourContract = await deploy("YourContract", [], {
   value: ethers.utils.parseEther("0.05")
   });
-  */
+ */
 
 
   /*
